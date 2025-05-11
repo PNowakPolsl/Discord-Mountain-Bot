@@ -2,15 +2,15 @@ name: Deploy Discord Bot
 
 on:
   push:
-    branches: [master]  # automatyczne uruchamianie przy pushu
-  workflow_dispatch:     # uruchamianie ręczne z wyborem opcji
+    branches: [ "master" ]
+  workflow_dispatch:
     inputs:
       build_image:
         description: 'Build Docker image?'
         required: false
         default: 'true'
       operation:
-        description: 'Operation to perform'
+        description: 'Operation to perform (Install, Uninstall, Reinstall)'
         required: false
         default: 'Reinstall'
         type: choice
