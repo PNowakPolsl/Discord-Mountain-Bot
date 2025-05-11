@@ -4,14 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       message:
-        description: 'Message to printtt'
+        description: 'Message to print'
         required: false
-        default: 'Hello from test.yml'
+        default: 'Hello from test-run.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Show input message
-        run: |
-          echo "Message: ${{ github.event.inputs.message }}"
+        run: echo "Message: ${{ github.event.inputs.message }}"
