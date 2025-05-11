@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       message:
-        description: 'Message to print'
+        description: 'Message to printtt'
         required: false
         default: 'Hello from test.yml'
 
