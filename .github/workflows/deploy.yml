@@ -1,25 +1,58 @@
 name: Deploy Discord Bot
 
 on:
-  push:
-    branches:
-      - master  
+  workflow_dispatch:
+    inputs:
+      build_image:
+        description: 'Build Docker image?'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      operation:
+        description: 'Operation to perform'
+        required: false
+        default: 'Reinstall'
+        type: choice
+        options:
+          - Install
+          - Uninstall
+          - Reinstall
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
 
-    - name: Build Docker image
-      run: |
-        docker build -t discord-bot .
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run Discord Bot
-      run: |
-        docker run -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} discord-bot
+      - name: Optional Docker Build
+        if: ${{ github.event.inputs.build_image == 'true' }}
+        run: |
+          docker build -t discord-bot .
+
+      - name: Perform Operation
+        run: |
+          echo "Selected operation: ${{ github.event.inputs.operation }}"
+          if [ "${{ github.event.inputs.operation }}" = "Install" ]; then
+            echo "Performing install..."
+            # insert install logic
+          elif [ "${{ github.event.inputs.operation }}" = "Uninstall" ]; then
+            echo "Performing uninstall..."
+            # insert uninstall logic
+          else
+            echo "Performing reinstall..."
+            # insert reinstall logic
+          fi
