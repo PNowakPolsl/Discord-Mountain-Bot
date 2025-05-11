@@ -1,16 +1,14 @@
 name: Deploy Discord Bot
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [master]  # automatyczne uruchamianie przy pushu
+  workflow_dispatch:     # uruchamianie ręczne z wyborem opcji
     inputs:
       build_image:
         description: 'Build Docker image?'
         required: false
         default: 'true'
-        type: choice
-        options:
-          - 'true'
-          - 'false'
       operation:
         description: 'Operation to perform'
         required: false
@@ -26,33 +24,39 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.8
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: pip install -r requirements.txt
 
-      - name: Optional Docker Build
-        if: ${{ github.event.inputs.build_image == 'true' }}
-        run: |
-          docker build -t discord-bot .
+    - name: Show selected inputs
+      run: |
+        echo "Build image: ${{ github.event.inputs.build_image || 'true' }}"
+        echo "Operation: ${{ github.event.inputs.operation || 'Reinstall' }}"
 
-      - name: Perform Operation
-        run: |
-          echo "Selected operation: ${{ github.event.inputs.operation }}"
-          if [ "${{ github.event.inputs.operation }}" = "Install" ]; then
-            echo "Performing install..."
-            # insert install logic
-          elif [ "${{ github.event.inputs.operation }}" = "Uninstall" ]; then
-            echo "Performing uninstall..."
-            # insert uninstall logic
-          else
-            echo "Performing reinstall..."
-            # insert reinstall logic
-          fi
+    - name: Build Docker image
+      if: ${{ github.event.inputs.build_image != 'false' || github.event_name == 'push' }}
+      run: docker build -t discord-bot .
+
+    - name: Run operation
+      env:
+        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+      run: |
+        echo "Selected operation: ${{ github.event.inputs.operation || 'Reinstall' }}"
+
+        if [ "${{ github.event.inputs.operation || 'Reinstall' }}" = "Install" ]; then
+          echo "Installing bot..."
+          docker run -e DISCORD_TOKEN=${DISCORD_TOKEN} discord-bot
+        elif [ "${{ github.event.inputs.operation || 'Reinstall' }}" = "Uninstall" ]; then
+          echo "Uninstalling bot... (custom logic here)"
+          exit 0
+        else
+          echo "Reinstalling bot..."
+          docker run -e DISCORD_TOKEN=${DISCORD_TOKEN} discord-bot
+        fi
