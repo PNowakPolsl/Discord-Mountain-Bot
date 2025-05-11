@@ -9,15 +9,15 @@ on:
         description: 'Build Docker image?'
         required: false
         default: 'true'
-      operation:
+          operation:
         description: 'Operation to perform (Install, Uninstall, Reinstall)'
         required: false
         default: 'Reinstall'
-        type: choice
         options:
           - Install
           - Uninstall
           - Reinstall
+
 
 jobs:
   deploy:
