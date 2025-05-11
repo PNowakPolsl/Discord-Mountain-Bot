@@ -6,7 +6,7 @@ on:
       message:
         description: 'Message to print'
         required: false
-        default: 'Hello from test-run.yml'
+        default: 'Hello from test.yml'
 
 jobs:
   test:
