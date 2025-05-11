@@ -1,0 +1,16 @@
+name: Test Run Button
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Message to print'
+        required: false
+        default: 'Hello from workflow_dispatch'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print message
+        run: echo "${{ github.event.inputs.message }}"
