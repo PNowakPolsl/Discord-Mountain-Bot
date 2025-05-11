@@ -13,49 +13,46 @@ on:
         description: 'Operation to perform (Install, Uninstall, Reinstall)'
         required: false
         default: 'Reinstall'
-        options:
-          - Install
-          - Uninstall
-          - Reinstall
-          
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.8'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
 
-    - name: Install dependencies
-      run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
 
-    - name: Show selected inputs
-      run: |
-        echo "Build image: ${{ github.event.inputs.build_image || 'true' }}"
-        echo "Operation: ${{ github.event.inputs.operation || 'Reinstall' }}"
+      - name: Show selected inputs
+        run: |
+          echo "Build image: ${{ github.event.inputs.build_image || 'true' }}"
+          echo "Operation: ${{ github.event.inputs.operation || 'Reinstall' }}"
 
-    - name: Build Docker image
-      if: ${{ github.event.inputs.build_image != 'false' || github.event_name == 'push' }}
-      run: docker build -t discord-bot .
+      - name: Build Docker image
+        if: ${{ (github.event.inputs.build_image || 'true') != 'false' || github.event_name == 'push' }}
+        run: docker build -t discord-bot .
 
-    - name: Run operation
-      env:
-        DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
-      run: |
-        echo "Selected operation: ${{ github.event.inputs.operation || 'Reinstall' }}"
+      - name: Run operation
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        run: |
+          echo "Selected operation: ${{ github.event.inputs.operation || 'Reinstall' }}"
+          OPERATION="${{ github.event.inputs.operation || 'Reinstall' }}"
 
-        if [ "${{ github.event.inputs.operation || 'Reinstall' }}" = "Install" ]; then
-          echo "Installing bot..."
-          docker run -e DISCORD_TOKEN=${DISCORD_TOKEN} discord-bot
-        elif [ "${{ github.event.inputs.operation || 'Reinstall' }}" = "Uninstall" ]; then
-          echo "Uninstalling bot... (custom logic here)"
-          exit 0
-        else
-          echo "Reinstalling bot..."
-          docker run -e DISCORD_TOKEN=${DISCORD_TOKEN} discord-bot
-        fi
+          if [ "$OPERATION" = "Install" ]; then
+            echo "Installing bot..."
+            docker run -e DISCORD_TOKEN=${DISCORD_TOKEN} discord-bot
+          elif [ "$OPERATION" = "Uninstall" ]; then
+            echo "Uninstalling bot... (custom logic here)"
+            exit 0
+          else
+            echo "Reinstalling bot..."
+            docker run -e DISCORD_TOKEN=${DISCORD_TOKEN} discord-bot
+          fi
