@@ -6,11 +6,11 @@ on:
       message:
         description: 'Message to print'
         required: false
-        default: 'Hello from workflow_dispatch'
+        default: 'Hello from test-run.yml'
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Print message
-        run: echo "${{ github.event.inputs.message }}"
+      - name: Show input message
+        run: echo "Message: ${{ github.event.inputs.message }}"
