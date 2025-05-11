@@ -1,28 +1,25 @@
-name: Deploy to Server
+name: Deploy Discord Bot
 
 on:
   push:
     branches:
-      - master
+      - master  
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.8'  
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
 
-    - name: Install dependencies
+    - name: Build Docker image
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt  
+        docker build -t discord-bot .
 
-    - name: Run the bot
+    - name: Run Discord Bot
       run: |
-        python bot.py  
+        docker run -e DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }} discord-bot
