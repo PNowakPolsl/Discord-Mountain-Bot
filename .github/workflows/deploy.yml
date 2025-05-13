@@ -66,14 +66,14 @@ jobs:
 
       - name: Build and push image
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner | toLower }}/discord-bot:latest
-          docker build -t $IMAGE_NAME .
-          docker push $IMAGE_NAME
+          IMAGE_NAME_LOWER="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/discord-bot:latest"
+          docker build -t $IMAGE_NAME_LOWER .
+          docker push $IMAGE_NAME_LOWER
 
   deploy:
     name: Deploy the bot
     needs: build
-    runs-on: ubuntu-latest  # change to 'self-hosted' for self-hosted runner (e.g., your PC or VM)
+    runs-on: ubuntu-latest  # or 'self-hosted' if using your machine
 
     steps:
       - name: Checkout code
@@ -83,16 +83,17 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository_owner | toLower }}/discord-bot:latest
-          echo "Operation selected: ${{ github.event.inputs.operation || 'Reinstall' }}"
+          IMAGE_NAME_LOWER="ghcr.io/$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')/discord-bot:latest"
+          OPERATION="${{ github.event.inputs.operation || 'Reinstall' }}"
 
-          docker pull $IMAGE_NAME
+          echo "Operation selected: $OPERATION"
+          docker pull $IMAGE_NAME_LOWER
 
-          if [ "${{ github.event.inputs.operation || 'Reinstall' }}" = "Install" ]; then
+          if [ "$OPERATION" = "Install" ]; then
             echo "Installing bot..."
-            docker run -d --name discord-bot -e DISCORD_TOKEN=$DISCORD_TOKEN $IMAGE_NAME
+            docker run -d --name discord-bot -e DISCORD_TOKEN=$DISCORD_TOKEN $IMAGE_NAME_LOWER
 
-          elif [ "${{ github.event.inputs.operation || 'Reinstall' }}" = "Uninstall" ]; then
+          elif [ "$OPERATION" = "Uninstall" ]; then
             echo "Stopping and removing bot..."
             docker stop discord-bot || true
             docker rm discord-bot || true
@@ -101,4 +102,4 @@ jobs:
             echo "Reinstalling bot..."
             docker stop discord-bot || true
             docker rm discord-bot || true
-            docker run -d --name discord-bot -e DISCORD_TOKEN=$DISCORD_TOKEN $IMAGE_NAME
+            docker run -d --name discord-bot -e DISCORD_TOKEN=$DISCORD_TOKEN $IMAGE_NAME_LOWER
