@@ -89,7 +89,7 @@ jobs:
           echo "Operation selected: $OPERATION"
           docker pull $IMAGE_NAME_LOWER
 
-          if [ "$OPERATION" = "Install" ]; then
+          if [ "$OPERATION" = "Install" ]; then 
             echo "Installing bot..."
             docker run -d --name discord-bot -e DISCORD_TOKEN=$DISCORD_TOKEN $IMAGE_NAME_LOWER
 
