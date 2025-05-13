@@ -23,16 +23,16 @@ def pobierz_kamery_topr():
     response = requests.get(url)
     response.raise_for_status()
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-    obrazy = soup.find_all('img')
+    soup = BeautifulSoup(response.text, "html.parser")
+    obrazy = soup.find_all("img")
 
     kamery = {}
     for img in obrazy:
-        src = img.get('src', '')
-        alt = img.get('alt', '').strip()
+        src = img.get("src", "")
+        alt = img.get("alt", "").strip()
 
-        if src.endswith('.jpeg') and '/download/current/' in src and alt:
-            if not src.startswith('http'):
+        if src.endswith(".jpeg") and "/download/current/" in src and alt:
+            if not src.startswith("http"):
                 src = f"https://pogoda.topr.pl/{src.lstrip('/')}"
 
             short_name = alt.lower().replace(" ", "_")
@@ -41,9 +41,13 @@ def pobierz_kamery_topr():
                 kamery[short_name] = []
 
             counter = len(kamery[short_name]) + 1
-            short_name_with_number = f"{short_name}_{counter}" if counter > 1 else short_name
+            short_name_with_number = (
+                f"{short_name}_{counter}" if counter > 1 else short_name
+            )
 
-            kamery[short_name].append({'link': src, 'full_name': alt, 'name': short_name_with_number})
+            kamery[short_name].append(
+                {"link": src, "full_name": alt, "name": short_name_with_number}
+            )
 
     return kamery
 
@@ -52,7 +56,7 @@ def pobierz_kamery_topr():
 async def on_ready():
     global views
     views = pobierz_kamery_topr()
-    print(f'Zalogowano jako {bot.user}')
+    print(f"Zalogowano jako {bot.user}")
 
 
 @bot.command()
@@ -60,7 +64,9 @@ async def widok(ctx, miejsce: str, numer: int = None):
     miejsce = miejsce.lower()
 
     if miejsce not in views:
-        await ctx.send("Nie rozumiem tego widoku. Użyj !help_tatry, aby zobaczyć dostępne widoki.")
+        await ctx.send(
+            "Nie rozumiem tego widoku. Użyj !help_tatry, aby zobaczyć dostępne widoki."
+        )
         return
 
     camera_list = views[miejsce]
@@ -68,8 +74,10 @@ async def widok(ctx, miejsce: str, numer: int = None):
     if numer is None and len(camera_list) == 1:
         camera = camera_list[0]
         link = f"{camera['link']}?t={int(time.time())}"
-        await ctx.send(f"**Oto widok na {camera['full_name']}** \U0001F3DE️\n{link}")
-        await ctx.send("Aby dodać ten widok do ulubionych, użyj komendy: !dodaj_ulubione w odpowiedzi na tę wiadomość.")
+        await ctx.send(f"**Oto widok na {camera['full_name']}** \U0001f3de️\n{link}")
+        await ctx.send(
+            "Aby dodać ten widok do ulubionych, użyj komendy: !dodaj_ulubione w odpowiedzi na tę wiadomość."
+        )
         return
 
     if numer is None:
@@ -80,50 +88,65 @@ async def widok(ctx, miejsce: str, numer: int = None):
         return
 
     if not (1 <= numer <= len(camera_list)):
-        await ctx.send(f"Niepoprawny numer kamery. Wybierz numer od 1 do {len(camera_list)}.")
+        await ctx.send(
+            f"Niepoprawny numer kamery. Wybierz numer od 1 do {len(camera_list)}."
+        )
         return
 
     camera = camera_list[numer - 1]
     link = f"{camera['link']}?t={int(time.time())}"
-    await ctx.send(f"**Oto widok na {camera['full_name']}** \U0001F3DE️\n{link}")
-    await ctx.send("Aby dodać ten widok do ulubionych, użyj komendy: !dodaj_ulubione w odpowiedzi na tę wiadomość.")
+    await ctx.send(f"**Oto widok na {camera['full_name']}** \U0001f3de️\n{link}")
+    await ctx.send(
+        "Aby dodać ten widok do ulubionych, użyj komendy: !dodaj_ulubione w odpowiedzi na tę wiadomość."
+    )
 
- 
- 
+
 @bot.command()
 async def dodaj_ulubione(ctx):
     if ctx.message.reference:
-        original_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
-        
+        original_message = await ctx.channel.fetch_message(
+            ctx.message.reference.message_id
+        )
+
         for camera_list in views.values():
             for camera in camera_list:
-                if camera['link'] in original_message.content:
-                    ulubione_widoki.append({
-                        'miejsce': camera['name'],
-                        'link': camera['link'],
-                        'full_name': camera['full_name']
-                    })
-                    await ctx.send(f"✅ **{camera['full_name']}** został dodany do ulubionych!")
+                if camera["link"] in original_message.content:
+                    ulubione_widoki.append(
+                        {
+                            "miejsce": camera["name"],
+                            "link": camera["link"],
+                            "full_name": camera["full_name"],
+                        }
+                    )
+                    await ctx.send(
+                        f"✅ **{camera['full_name']}** został dodany do ulubionych!"
+                    )
                     return
         await ctx.send("❌ Nie mogę rozpoznać widoku w tej wiadomości.")
     else:
-        await ctx.send("Musisz odpowiedzieć na wiadomość bota z widokiem, aby dodać go do ulubionych.")
-
+        await ctx.send(
+            "Musisz odpowiedzieć na wiadomość bota z widokiem, aby dodać go do ulubionych."
+        )
 
 
 @bot.command()
 async def usun_ulubione(ctx):
     if ctx.message.reference:
-        original_message = await ctx.channel.fetch_message(ctx.message.reference.message_id)
+        original_message = await ctx.channel.fetch_message(
+            ctx.message.reference.message_id
+        )
         for i, widok in enumerate(ulubione_widoki):
             if f"**{widok['full_name']}**" in original_message.content:
                 del ulubione_widoki[i]
-                await ctx.send(f"❌ **{widok['full_name']}** został usunięty z ulubionych!")
+                await ctx.send(
+                    f"❌ **{widok['full_name']}** został usunięty z ulubionych!"
+                )
                 return
         await ctx.send("❌ Nie znaleziono pasującego widoku w ulubionych.")
     else:
-        await ctx.send("Musisz odpowiedzieć na wiadomość z widokiem, aby go usunąć z ulubionych.")
-
+        await ctx.send(
+            "Musisz odpowiedzieć na wiadomość z widokiem, aby go usunąć z ulubionych."
+        )
 
 
 @bot.command()
@@ -133,7 +156,9 @@ async def ulubione_tatry(ctx):
             timestamp = int(time.time())
             fresh_link = f"{widok['link']}?t={timestamp}"
             await ctx.send(f"**{widok['full_name']}** 🏞️\n{fresh_link}")
-            await ctx.send("Aby usunąć ten widok z ulubionych, odpowiedz na tę wiadomość komendą: !usun_ulubione.")
+            await ctx.send(
+                "Aby usunąć ten widok z ulubionych, odpowiedz na tę wiadomość komendą: !usun_ulubione."
+            )
     else:
         await ctx.send("📭 Nie masz żadnych ulubionych widoków.")
 
