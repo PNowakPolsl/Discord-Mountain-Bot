@@ -73,7 +73,7 @@ jobs:
   deploy:
     name: Deploy the bot
     needs: build
-    runs-on: ubuntu-latest  # or 'self-hosted' if using your machine
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
@@ -103,3 +103,4 @@ jobs:
             docker stop discord-bot || true
             docker rm discord-bot || true
             docker run -d --name discord-bot -e DISCORD_TOKEN=$DISCORD_TOKEN $IMAGE_NAME_LOWER
+          fi
